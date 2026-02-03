@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://npi2gi1n568e"]
+
+[ext_resource type="Script" uid="uid://cwfsn0binfiun" path="res://scripts/debut.gd" id="1_lkr18"]
+[ext_resource type="PackedScene" uid="uid://df530d2xfu5pm" path="res://scenes/suv.tscn" id="2_5tvy6"]
+[ext_resource type="PackedScene" uid="uid://dtrqxe6nbrdys" path="res://scenes/CIVIC.tscn" id="3_qxfe4"]
+
+[node name="Debut" type="Node2D"]
+script = ExtResource("1_lkr18")
+civic_scene = ExtResource("3_qxfe4")
+suv_scene = ExtResource("2_5tvy6")
+
+[node name="VoituresContainer" type="Node2D" parent="."]
+
+[node name="suv" parent="VoituresContainer" instance=ExtResource("2_5tvy6")]
+
+[node name="CIVIC" parent="VoituresContainer" instance=ExtResource("3_qxfe4")]

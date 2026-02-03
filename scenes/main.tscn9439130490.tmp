@@ -1,0 +1,15 @@
+[gd_scene load_steps=5 format=3 uid="uid://kaymvqk7prrs"]
+
+[ext_resource type="Script" uid="uid://c6h0bf1odclmb" path="res://scripts/main.gd" id="1_jyhfs"]
+[ext_resource type="PackedScene" uid="uid://cjbv1dy8mk30l" path="res://scenes/Civic.tscn" id="2_sugp2"]
+[ext_resource type="PackedScene" uid="uid://bdadrn1ynrkot" path="res://scenes/suv.tscn" id="3_jyhfs"]
+[ext_resource type="PackedScene" uid="uid://byrw0t0jiso8b" path="res://scenes/player.tscn" id="4_jyhfs"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_jyhfs")
+civic_scene = ExtResource("2_sugp2")
+suv_scene = ExtResource("3_jyhfs")
+default_scene = ExtResource("4_jyhfs")
+
+[node name="VoituresContainer" type="Node2D" parent="."]
+position = Vector2(-11, 17)
