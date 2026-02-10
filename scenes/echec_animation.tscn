@@ -1,0 +1,396 @@
+[gd_scene load_steps=20 format=3 uid="uid://c5cwgmkfcbedj"]
+
+[ext_resource type="Texture2D" uid="uid://bnsgpqcjhrjdy" path="res://assets/Load.png" id="1_23eu5"]
+[ext_resource type="Texture2D" uid="uid://dianhnwp7kusm" path="res://assets/unnamed.jpg" id="2_ne575"]
+[ext_resource type="Texture2D" uid="uid://bylwhcb7hmxt" path="res://assets/Mecanic.png" id="3_1ol1a"]
+[ext_resource type="Script" uid="uid://ddrojfm220ck7" path="res://scripts/animated_sprite_2d.gd" id="4_sxmtv"]
+[ext_resource type="Texture2D" uid="uid://d0cb485e04nkp" path="res://assets/image-removebg-preview (4).png" id="5_d3f2q"]
+[ext_resource type="Texture2D" uid="uid://cs8plmrvv660a" path="res://assets/téléchargement.png" id="6_jrmvl"]
+[ext_resource type="Texture2D" uid="uid://wiwslccmb4r4" path="res://assets/téléchargement (1).png" id="7_0q6vd"]
+[ext_resource type="Script" uid="uid://dlrqmb1yxky1n" path="res://scripts/sprite_2d.gd" id="8_61wj8"]
+[ext_resource type="Texture2D" uid="uid://b8qa71bq75hap" path="res://assets/image-removebg-preview (5).png" id="9_23eu5"]
+[ext_resource type="FontFile" uid="uid://cp84or16738q7" path="res://assets/ByteBounce.ttf" id="9_y4uiw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bgy8x"]
+atlas = ExtResource("3_1ol1a")
+region = Rect2(0, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iq67w"]
+atlas = ExtResource("3_1ol1a")
+region = Rect2(64, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qhofw"]
+atlas = ExtResource("3_1ol1a")
+region = Rect2(128, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7upj0"]
+atlas = ExtResource("3_1ol1a")
+region = Rect2(192, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_inw3b"]
+atlas = ExtResource("3_1ol1a")
+region = Rect2(192, 128, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_7lby5"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"pickup",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bgy8x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iq67w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qhofw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7upj0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_inw3b")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[sub_resource type="Animation" id="Animation_7upj0"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-54.99999, 542.00006)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Label:text")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["Votre mécanicien prépare ses outils...
+"]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("ColorRect2:color")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.3137255, 0.33333334, 0.35686275, 1)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("ImageRemovebgPreview(4)2:visible")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("ImageRemovebgPreview(4)2:position")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(574.0001, 140.00002)]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("ImageRemovebgPreview(4)2:rotation")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_qhofw"]
+resource_name = "intro_loading"
+length = 3.0
+tracks/0/type = "method"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.033333335, 1.3),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"lancer_course"
+}, {
+"args": [],
+"method": &"stop"
+}]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.2, 1.3999996),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-54.99999, 542.00006), Vector2(504.99994, 545), Vector2(504.99994, 545)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:rotation")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1.23),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AnimatedSprite2D:visible")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(1.52, 1.66),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Sprite2D:visible")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 1.45),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Label:text")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0.02, 1.45, 1.65),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": ["Votre mécanicien prépare ses outils...
+", "Votre mécanicien prépare ses outils...
+", "Vérifiez votre connexion..."]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("ColorRect2:color")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(1.55, 1.77),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0.3137255, 0.33333334, 0.35686275, 1), Color(0.65882355, 0.17254902, 0.19215687, 1)]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("ImageRemovebgPreview(4)2:visible")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 1.6, 1.71),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, false, true]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("ImageRemovebgPreview(4)2:position")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(1.9, 2.28, 2.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(574.0001, 140.00002), Vector2(574.0001, 152), Vector2(574.0001, 138)]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("ImageRemovebgPreview(4)2:rotation")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = {
+"times": PackedFloat32Array(1.9, 2.28, 2.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.0, 0.0, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7upj0"]
+_data = {
+&"RESET": SubResource("Animation_7upj0"),
+&"intro_loading": SubResource("Animation_qhofw")
+}
+
+[node name="EchecAnimation" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Load" type="Sprite2D" parent="."]
+position = Vector2(431, 1049)
+texture = ExtResource("1_23eu5")
+
+[node name="Unnamed" type="Sprite2D" parent="."]
+position = Vector2(575.99994, 271)
+scale = Vector2(1.123047, 1.123047)
+texture = ExtResource("2_ne575")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = 1.0
+offset_top = 509.0
+offset_right = 1153.0
+offset_bottom = 649.3697
+color = Color(0.29803923, 0.27058825, 0.3019608, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(-54.99999, 542.00006)
+scale = Vector2(1.7734375, 1.7734375)
+sprite_frames = SubResource("SpriteFrames_7lby5")
+animation = &"walk"
+script = ExtResource("4_sxmtv")
+
+[node name="AnimationPlayer31" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_7upj0")
+}
+autoplay = "intro_loading"
+
+[node name="Téléchargement" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(571, 566.99994)
+scale = Vector2(0.26223764, 0.26223764)
+texture = ExtResource("6_jrmvl")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(566, 135)
+texture = ExtResource("7_0q6vd")
+script = ExtResource("8_61wj8")
+
+[node name="ColorRect2" type="ColorRect" parent="."]
+offset_left = 409.0
+offset_top = 214.0
+offset_right = 788.0
+offset_bottom = 254.0
+size_flags_horizontal = 4
+color = Color(0.3137255, 0.33333334, 0.35686275, 1)
+
+[node name="Label2" type="Label" parent="."]
+offset_left = 450.0
+offset_top = 606.0
+offset_right = 740.0
+offset_bottom = 655.0
+theme_override_fonts/font = ExtResource("9_y4uiw")
+theme_override_font_sizes/font_size = 20
+text = "Synchronisation avec Firebase"
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="."]
+offset_left = 427.0
+offset_top = 223.0
+offset_right = 763.0
+offset_bottom = 272.0
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("9_y4uiw")
+theme_override_font_sizes/font_size = 24
+text = "Votre mécanicien prépare ses outils...
+"
+metadata/_edit_use_anchors_ = true
+
+[node name="ImageRemovebgPreview(4)" type="Sprite2D" parent="."]
+position = Vector2(575, 564)
+scale = Vector2(0.5424403, 0.5424403)
+texture = ExtResource("9_23eu5")
+
+[node name="ImageRemovebgPreview(4)2" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(574.0001, 140.00002)
+scale = Vector2(0.378, 0.378)
+texture = ExtResource("5_d3f2q")

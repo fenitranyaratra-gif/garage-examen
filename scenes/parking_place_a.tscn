@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3 uid="uid://dlw6753pp4fpq"]
+
+[ext_resource type="Script" uid="uid://r1pc8tcqb6g2" path="res://scripts/parking_place_a.gd" id="1_5adki"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eb6dy"]
+size = Vector2(191.5, 140)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ya4ey"]
+size = Vector2(30.75, 273)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trceg"]
+size = Vector2(203.77734, 30.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a8y0u"]
+size = Vector2(25, 230)
+
+[node name="ParkingPlaceA" type="Area2D" groups=["parking_slot", "parkingg"]]
+script = ExtResource("1_5adki")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(133, 97)
+shape = SubResource("RectangleShape2D_eb6dy")
+
+[node name="Barrier" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Barrier"]
+light_mask = 2
+visibility_layer = 8
+position = Vector2(279.5, 104)
+shape = SubResource("RectangleShape2D_ya4ey")
+disabled = true
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(79.890625, -9.5)
+shape = SubResource("RectangleShape2D_trceg")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(102, 216)
+shape = SubResource("RectangleShape2D_trceg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-12, 105)
+shape = SubResource("RectangleShape2D_a8y0u")

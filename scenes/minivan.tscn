@@ -1,9 +1,11 @@
-[gd_scene load_steps=54 format=3 uid="uid://b1570ljl0fd5o"]
+[gd_scene load_steps=58 format=3 uid="uid://b1570ljl0fd5o"]
 
 [ext_resource type="Script" uid="uid://bgac86g32vdlt" path="res://scripts/minivan.gd" id="1_bpes2"]
 [ext_resource type="Texture2D" uid="uid://s8yjsywi358w" path="res://assets/Interiors_free/Black_SUV_CLEAN_All_006.png" id="1_miuxf"]
 [ext_resource type="Script" uid="uid://e1rpggabbsm8" path="res://scripts/MinivanMovement.gd" id="3_bpes2"]
 [ext_resource type="Texture2D" uid="uid://ceyoxpjx5yc72" path="res://assets/Cars/Brown_MINIVAN_CLEAN_All_000-sheet.png" id="3_miuxf"]
+[ext_resource type="Script" uid="uid://cwq2epxvisfib" path="res://scripts/repair_button.gd" id="4_d70y8"]
+[ext_resource type="Script" uid="uid://cjfgfiifchd05" path="res://scripts/finish_button.gd" id="6_lgcab"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bpes2"]
 atlas = ExtResource("3_miuxf")
@@ -349,6 +351,13 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bpes2"]
+size = Vector2(86, 156)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_d70y8"]
+radius = 41.0
+height = 186.0
+
 [node name="Minivan" type="Node2D"]
 script = ExtResource("1_bpes2")
 
@@ -358,52 +367,70 @@ position = Vector2(757, 363)
 scale = Vector2(2.16, 2.16)
 texture = ExtResource("1_miuxf")
 
-[node name="RepairButton" type="Button" parent="."]
-visible = false
-offset_left = 698.0
-offset_top = 485.0
-offset_right = 817.0
-offset_bottom = 518.0
-text = "Réparer"
-
-[node name="FinishButton" type="Button" parent="."]
-visible = false
-offset_left = 176.0
-offset_top = 267.0
-offset_right = 273.0
-offset_bottom = 298.0
-text = "Finir"
-
-[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+[node name="CharacterBody2D" type="CharacterBody2D" parent="." groups=["voitures"]]
+position = Vector2(-1, 4)
 script = ExtResource("3_bpes2")
 
+[node name="RepairButton" type="Button" parent="CharacterBody2D"]
+visible = false
+offset_left = 48.0
+offset_top = 212.0
+offset_right = 167.0
+offset_bottom = 245.0
+text = "Réparer"
+script = ExtResource("4_d70y8")
+
 [node name="Label" type="Label" parent="CharacterBody2D"]
-offset_left = 750.0
-offset_top = 191.0
-offset_right = 790.0
-offset_bottom = 214.0
+offset_left = 81.0
+offset_top = -11.0
+offset_right = 121.0
+offset_bottom = 12.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LabelStatut" type="Label" parent="CharacterBody2D"]
-offset_left = 747.0
-offset_top = 217.0
-offset_right = 795.0
-offset_bottom = 240.0
+offset_left = 81.0
+offset_top = 6.0
+offset_right = 129.0
+offset_bottom = 29.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LabelResume" type="Label" parent="CharacterBody2D"]
-offset_left = 752.0
-offset_top = 378.0
-offset_right = 792.0
-offset_bottom = 401.0
+offset_left = 66.0
+offset_top = 188.0
+offset_right = 146.0
+offset_bottom = 211.0
+metadata/_edit_use_anchors_ = true
 
 [node name="ProgressBar" type="ProgressBar" parent="CharacterBody2D"]
-visible = false
-offset_left = 698.0
-offset_top = 227.0
-offset_right = 838.0
-offset_bottom = 254.0
+offset_left = 34.0
+offset_top = -40.0
+offset_right = 174.0
+offset_bottom = -13.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D"]
-position = Vector2(771.00006, 306.00003)
-scale = Vector2(1.69, 1.69)
+position = Vector2(105.00006, 107.00003)
+scale = Vector2(2, 2)
 sprite_frames = SubResource("SpriteFrames_lgcab")
 animation = &"drive"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+position = Vector2(104, 107)
+shape = SubResource("RectangleShape2D_bpes2")
+
+[node name="InteractionZone" type="Area2D" parent="CharacterBody2D"]
+position = Vector2(-667, -199)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/InteractionZone"]
+position = Vector2(771, 315)
+shape = SubResource("CapsuleShape2D_d70y8")
+
+[node name="FinishButton" type="Button" parent="CharacterBody2D"]
+visible = false
+offset_left = 55.0
+offset_top = 195.0
+offset_right = 152.0
+offset_bottom = 226.0
+text = "Finir"
+script = ExtResource("6_lgcab")
+
+[connection signal="pressed" from="CharacterBody2D/RepairButton" to="." method="_on_repair_button_pressed"]

@@ -1,0 +1,18 @@
+[gd_scene load_steps=8 format=3 uid="uid://bcn1o43oc7tnf"]
+
+[ext_resource type="Script" uid="uid://be1suroh7x36h" path="res://scripts/main_scene.gd" id="1_w2twt"]
+[ext_resource type="PackedScene" uid="uid://kaymvqk7prrs" path="res://scenes/main.tscn" id="2_c16ls"]
+[ext_resource type="PackedScene" uid="uid://cjbv1dy8mk30l" path="res://scenes/Civic.tscn" id="3_18nlu"]
+[ext_resource type="PackedScene" uid="uid://bdadrn1ynrkot" path="res://scenes/suv.tscn" id="4_c1pb6"]
+[ext_resource type="PackedScene" uid="uid://bx2clnv5ucxob" path="res://scenes/hatchback.tscn" id="5_6wevv"]
+[ext_resource type="PackedScene" uid="uid://b1570ljl0fd5o" path="res://scenes/minivan.tscn" id="6_e1cbu"]
+[ext_resource type="PackedScene" uid="uid://byrw0t0jiso8b" path="res://scenes/player.tscn" id="7_mngbo"]
+
+[node name="MainScene" type="Node2D"]
+script = ExtResource("1_w2twt")
+main_scene = ExtResource("2_c16ls")
+civic_scene = ExtResource("3_18nlu")
+suv_scene = ExtResource("4_c1pb6")
+hatchback_scene = ExtResource("5_6wevv")
+minivan_scene = ExtResource("6_e1cbu")
+default_scene = ExtResource("7_mngbo")

@@ -1,7 +1,8 @@
-[gd_scene load_steps=55 format=3 uid="uid://cjbv1dy8mk30l"]
+[gd_scene load_steps=56 format=3 uid="uid://cjbv1dy8mk30l"]
 
 [ext_resource type="Script" uid="uid://dflj6jftgc8ky" path="res://scripts/civic.gd" id="1_qavtp"]
 [ext_resource type="Script" uid="uid://8ca4yndg15w1" path="res://scripts/CivicMovement.gd" id="2_xf2hp"]
+[ext_resource type="Script" uid="uid://cwq2epxvisfib" path="res://scripts/repair_button.gd" id="3_kn0ad"]
 [ext_resource type="Texture2D" uid="uid://boxdi45bvhacw" path="res://assets/Cars/Black_COUPE_CLEAN_All_000-sheet.png" id="3_xf2hp"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kn0ad"]
@@ -358,64 +359,67 @@ height = 144.0
 [node name="Civic" type="Node2D"]
 script = ExtResource("1_qavtp")
 
-[node name="RepairButton" type="Button" parent="."]
-visible = false
-offset_left = 171.0
-offset_top = 295.0
-offset_right = 290.0
-offset_bottom = 328.0
-text = "Réparer"
-
-[node name="ProgressBar" type="ProgressBar" parent="."]
-visible = false
-offset_left = 127.0
-offset_top = 45.0
-offset_right = 267.0
-offset_bottom = 72.0
-
-[node name="FinishButton" type="Button" parent="."]
-visible = false
-offset_left = 176.0
-offset_top = 267.0
-offset_right = 273.0
-offset_bottom = 275.0
-text = "Finir"
-
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." groups=["voitures"]]
+z_index = 25
 script = ExtResource("2_xf2hp")
 
+[node name="FinishButton" type="Button" parent="CharacterBody2D"]
+visible = false
+offset_left = 39.0
+offset_top = 151.0
+offset_right = 136.0
+offset_bottom = 182.0
+text = "Finir"
+
+[node name="ProgressBar" type="ProgressBar" parent="CharacterBody2D"]
+visible = false
+offset_left = 11.0
+offset_top = -41.0
+offset_right = 151.0
+offset_bottom = -14.0
+
+[node name="RepairButton" type="Button" parent="CharacterBody2D"]
+visible = false
+offset_left = 26.0
+offset_top = 150.0
+offset_right = 145.0
+offset_bottom = 183.0
+text = "Réparer"
+script = ExtResource("3_kn0ad")
+
 [node name="Label" type="Label" parent="CharacterBody2D"]
-offset_left = 751.0
-offset_top = 201.0
-offset_right = 791.0
-offset_bottom = 224.0
+offset_left = 61.0
+offset_top = -22.0
+offset_right = 101.0
+offset_bottom = 1.0
 
 [node name="LabelStatut" type="Label" parent="CharacterBody2D"]
-offset_left = 751.0
-offset_top = 224.0
-offset_right = 793.0
-offset_bottom = 247.0
+offset_left = 64.49994
+offset_top = 1.0
+offset_right = 106.49994
+offset_bottom = 24.0
+metadata/_edit_use_anchors_ = true
 
-[node name="LabelResume" type="Label" parent="CharacterBody2D"]
-offset_left = 724.0
-offset_top = 386.0
-offset_right = 824.0
-offset_bottom = 409.0
+[node name="LabelResumeut2" type="Label" parent="CharacterBody2D"]
+offset_left = 65.49994
+offset_top = 9.4999695
+offset_right = 110.49994
+offset_bottom = 32.49997
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D"]
-position = Vector2(771.00006, 306.00003)
+position = Vector2(84.5, 83.00003)
 scale = Vector2(1.69, 1.69)
 sprite_frames = SubResource("SpriteFrames_xf2hp")
 animation = &"drive"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
-position = Vector2(770.5, 307)
+position = Vector2(83.99994, 84)
 shape = SubResource("RectangleShape2D_xf2hp")
 
 [node name="InteractionZone" type="Area2D" parent="CharacterBody2D"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/InteractionZone"]
-position = Vector2(771, 307)
+position = Vector2(84.49994, 84)
 shape = SubResource("CapsuleShape2D_kn0ad")
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="CharacterBody2D"]

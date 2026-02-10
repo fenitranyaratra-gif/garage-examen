@@ -1,0 +1,65 @@
+[gd_scene load_steps=9 format=3 uid="uid://dehqc27gywmdi"]
+
+[ext_resource type="FontFile" uid="uid://cp84or16738q7" path="res://assets/ByteBounce.ttf" id="1_8t08e"]
+[ext_resource type="Script" uid="uid://cmeuj174gq" path="res://scripts/start.gd" id="1_fx3ca"]
+[ext_resource type="Texture2D" uid="uid://bvkgy0lxe7560" path="res://assets/ASS.png" id="2_yx83k"]
+[ext_resource type="Texture2D" uid="uid://cqd3rxnq4jr67" path="res://assets/GameLogo1.png" id="3_j3bqk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yx83k"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lynlw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h1lxu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d48hf"]
+
+[node name="CanvasLayer" type="CanvasLayer"]
+script = ExtResource("1_fx3ca")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -87.0
+offset_top = -31.0
+offset_right = 1239.6399
+offset_bottom = 710.0
+
+[node name="Ass" type="Sprite2D" parent="."]
+position = Vector2(592.2455, 386.14737)
+scale = Vector2(0.25744596, 0.25744596)
+texture = ExtResource("2_yx83k")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_left = 227.0
+offset_top = 155.0
+offset_right = 267.0
+offset_bottom = 195.0
+
+[node name="ButtonStart" type="Button" parent="."]
+offset_left = 422.0
+offset_top = 459.0
+offset_right = 723.0
+offset_bottom = 509.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_8t08e")
+theme_override_font_sizes/font_size = 45
+theme_override_styles/normal = SubResource("StyleBoxEmpty_yx83k")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_lynlw")
+text = "Start"
+
+[node name="ButtonExit" type="Button" parent="."]
+offset_left = 420.0
+offset_top = 534.0
+offset_right = 728.0
+offset_bottom = 585.0
+theme_override_fonts/font = ExtResource("1_8t08e")
+theme_override_font_sizes/font_size = 46
+theme_override_styles/normal = SubResource("StyleBoxEmpty_h1lxu")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_d48hf")
+text = "Exit"
+
+[node name="GameLogo1" type="Sprite2D" parent="."]
+position = Vector2(1716, 447)
+scale = Vector2(0.252809, 0.252809)
+texture = ExtResource("3_j3bqk")
+
+[connection signal="pressed" from="ButtonStart" to="." method="_on_button_start_pressed"]
+[connection signal="pressed" from="ButtonExit" to="." method="_on_button_exit_pressed"]

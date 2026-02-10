@@ -1,47 +1,40 @@
 extends Node2D
 
 # ===============================
-# Nœuds enfants (Chemins mis à jour)
+# Nœuds enfants
 # ===============================
-# On ajoute le nom du parent devant chaque noeud déplacé
 @onready var label_statut: Label = $CharacterBody2D/LabelStatut
 @onready var label_resume: Label = $CharacterBody2D/LabelResume
 @onready var label: Label = $CharacterBody2D/Label
+var is_in_finish_zone: bool = false
+@onready var repair_button: Button = $CharacterBody2D/RepairButton
+@onready var progress_bar: ProgressBar = $CharacterBody2D/ProgressBar
+@onready var finish_button: Button = $CharacterBody2D/FinishButton
 
-# Si ceux-là sont restés sous Civic, ne change rien :
-@onready var repair_button: Button = $RepairButton
-@onready var progress_bar: ProgressBar = $ProgressBar
-@onready var finish_button: Button = $FinishButton
-
-# N'oublie pas ton sprite pour la logique de rotation
 @onready var sprite: AnimatedSprite2D = $CharacterBody2D/AnimatedSprite2D
-# ===============================
-# Données
-# ===============================
+
+# Variables
 var voiture_data: Dictionary = {}
 var pending_pannes: Array[Dictionary] = []
 var total_duree_restante: float = 0.0
 var total_prix: int = 0
-
+# Variables pour la validation
+var validation_en_cours: bool = false
+var requetes_validation_en_cours: Array = []
 var current_repair_index: int = -1
 var current_repair_time: float = 0.0
 var repair_duration: float = 0.0
 var is_repairing: bool = false
 
-var panne_statuts_to_update: Array[String] = []
 var has_reparable_panne: bool = false
-
-# Nouvelle variable pour stocker les pannes réparées
 var pannes_reparées: Array[Dictionary] = []
-
-# Variables pour la validation
-var validation_en_cours: bool = false
-var requetes_validation_en_cours: Array = []
+var panne_deja_payee: bool = false
 
 # ===============================
 # Initialisation
 # ===============================
 func _ready() -> void:
+	add_to_group("voiture_principale")
 	if repair_button:
 		repair_button.visible = false
 		repair_button.text = "Réparer"
@@ -55,12 +48,14 @@ func _ready() -> void:
 		progress_bar.min_value = 0
 		progress_bar.max_value = 100
 		progress_bar.value = 0
+	
+	if sprite:
+		sprite.modulate = Color.WHITE
 
 func setup(data: Dictionary) -> void:
 	voiture_data = data.duplicate(true)
 	
 	var matricule = str(data.get("matricule", "")).strip_edges()
-	var modele = str(data.get("modele", "")).strip_edges()
 	if label:
 		label.text = "%s" % [matricule]
 	
@@ -75,29 +70,19 @@ func charger_pannes() -> void:
 		_set_statut("❓ ID manquant", Color.YELLOW)
 		return
 	
-	var query_pannes = {
-		"structuredQuery": {
-			"from": [{"collectionId": "pannes"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "idVoiture"},
-					"op": "EQUAL",
-					"value": {"stringValue": id_voiture}
-				}
-			},
-			"limit": 20
-		}
-	}
+	var url = "https://garage-api-2-t50x.onrender.com/voitures/" + id_voiture + "/pannes"
+	var headers = PackedStringArray([
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
-	var url = "https://firestore.googleapis.com/v1/projects/garrageapp-05/databases/(default)/documents:runQuery"
-	var json_str = JSON.stringify(query_pannes)
-	var headers = PackedStringArray(["Content-Type: application/json"])
+	print("Chargement pannes pour voiture ID:", id_voiture)
 	
 	var http = HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(_on_pannes_reponse.bind(id_voiture))
 	
-	var err = http.request(url, headers, HTTPClient.METHOD_POST, json_str)
+	var err = http.request(url, headers, HTTPClient.METHOD_GET)
 	if err != OK:
 		_set_statut("⚠️ Erreur réseau", Color.ORANGE)
 		http.queue_free()
@@ -106,28 +91,36 @@ func _on_pannes_reponse(_result, code: int, _headers, body: PackedByteArray, id_
 	if get_node_or_null("HTTPRequest"):
 		get_node_or_null("HTTPRequest").queue_free()
 	
+	print("=== RÉPONSE PANNES ===")
+	print("Code:", code)
+	
 	if code != 200:
 		print("HTTP pannes erreur:", code)
-		_set_statut("⚠️ Erreur serveur", Color.ORANGE)
+		_set_statut("⚠️ Erreur API " + str(code), Color.ORANGE)
 		return
 	
 	var json = JSON.new()
 	if json.parse(body.get_string_from_utf8()) != OK:
 		print("JSON pannes invalide")
+		_set_statut("⚠️ Format JSON invalide", Color.ORANGE)
 		return
 	
-	var response_array = json.data as Array
+	var response = json.data
 	var ids_pannes: Array[String] = []
 	
-	for item in response_array:
-		var doc = item.get("document")
-		if doc is Dictionary:
-			var name_path = str(doc.get("name", ""))
-			var id_panne = name_path.split("/")[-1] if "/" in name_path else ""
-			if id_panne != "":
-				ids_pannes.append(id_panne)
+	if response is Array:
+		print("Nombre de pannes trouvées:", response.size())
+		
+		for item in response:
+			if item is Dictionary and item.has("document"):
+				var doc = item["document"]
+				if doc is Dictionary:
+					var name_path = str(doc.get("name", ""))
+					var id_panne = name_path.split("/")[-1] if "/" in name_path else ""
+					if id_panne != "":
+						ids_pannes.append(id_panne)
 	
-	print("Nombre de pannes principales trouvées :", ids_pannes.size())
+	print("Pannes à traiter:", ids_pannes)
 	
 	if ids_pannes.is_empty():
 		_set_statut("✅ OK", Color.GREEN)
@@ -136,112 +129,215 @@ func _on_pannes_reponse(_result, code: int, _headers, body: PackedByteArray, id_
 		update_finish_button_visibility()
 		return
 	
-	# On initialise sans statut ici
+	# Réinitialiser
 	total_duree_restante = 0.0
 	total_prix = 0
 	pending_pannes.clear()
-	pannes_reparées.clear()  # Réinitialiser
-	panne_statuts_to_update.clear()
+	pannes_reparées.clear()
 	has_reparable_panne = false
 	validation_en_cours = false
+	panne_deja_payee = false
 	
 	_traiter_pannes_suivantes(ids_pannes, 0)
 
 # ===============================
-# Traitement séquentiel des pannes
+# Traitement séquentiel - CORRIGÉ
 # ===============================
 func _traiter_pannes_suivantes(ids_pannes: Array[String], index: int):
 	if index >= ids_pannes.size():
 		print("=== FIN TRAITEMENT ===")
+		print("panne_deja_payee = ", panne_deja_payee)
 		print("has_reparable_panne = ", has_reparable_panne)
 		print("total_prix = ", total_prix)
 		print("pending_pannes.size() = ", pending_pannes.size())
-		print("pannes_reparées.size() = ", pannes_reparées.size())
 		
-		if not has_reparable_panne:
+		# LOGIQUE CORRIGÉE :
+		if panne_deja_payee:
+			# Une ou plusieurs pannes sont déjà payées
+			if total_prix > 0:
+				_set_statut("✅ OK (déjà payé)", Color.GREEN)
+				_set_resume("Payé • " + str(total_prix) + " Ar")
+			else:
+				_set_statut("✅ OK (déjà payé)", Color.GREEN)
+				_set_resume("Déjà payé")
+		elif not has_reparable_panne and total_prix > 0:
+			# Toutes réparées mais pas payées
 			_set_statut("Réparé mais non payé", Color.YELLOW)
 			_set_resume(str(total_prix) + " Ar à payer")
-			repair_button.visible = false
-			finish_button.visible = false
-			progress_bar.visible = false
+		elif not has_reparable_panne:
+			# Aucune panne à réparer
+			_set_statut("✅ OK", Color.GREEN)
+			_set_resume("Aucune panne")
 		else:
+			# Pannes à réparer
 			_set_statut("❌ CASSÉ", Color.RED)
 			_set_resume("%ds • %d Ar" % [int(total_duree_restante), total_prix])
-			update_repair_button_visibility()
-			update_finish_button_visibility()
+		
+		# Boutons
+		repair_button.visible = (not pending_pannes.is_empty() and not panne_deja_payee and has_reparable_panne)
+		finish_button.visible = false
+		progress_bar.visible = false
+		
 		return
 	
 	var id_panne_actuelle = ids_pannes[index]
+	print("Traitement panne", index + 1, "/", ids_pannes.size(), ":", id_panne_actuelle)
 	
+	# Vérifier paiement
+	verifier_paiement_panne(id_panne_actuelle, func(est_payee: bool):
+		if est_payee:
+			panne_deja_payee = true
+			print("Panne", id_panne_actuelle, "déjà payée")
+			# Même si payée, on doit charger son prix pour l'afficher
+			_charger_prix_panne_payee(id_panne_actuelle, ids_pannes, index)
+		else:
+			_charger_details_panne(id_panne_actuelle, ids_pannes, index)
+	)
+
+# Nouvelle fonction pour charger le prix d'une panne déjà payée
+func _charger_prix_panne_payee(id_panne: String, ids_pannes: Array[String], index: int):
+	# Charger les détails pour connaître le prix
 	var query_details = {
-		"structuredQuery": {
-			"from": [{"collectionId": "panneDetails"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "idPanne"},
-					"op": "EQUAL",
-					"value": {"stringValue": id_panne_actuelle}
-				}
-			},
-			"limit": 10
-		}
+		"idPanne": id_panne
 	}
 	
-	var url_details = "https://firestore.googleapis.com/v1/projects/garrageapp-05/databases/(default)/documents:runQuery"
-	var json_str_details = JSON.stringify(query_details)
-	var headers = PackedStringArray(["Content-Type: application/json"])
+	var url = "https://garage-api-2-t50x.onrender.com/panneDetails"
+	var json_str = JSON.stringify(query_details)
+	var headers = PackedStringArray([
+		"Content-Type: application/json",
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
 	var http = HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(_on_details_reponse.bind(id_panne_actuelle, ids_pannes, index))
+	http.request_completed.connect(func(_result, code: int, _headers, body: PackedByteArray):
+		http.queue_free()
+		
+		if code == 200:
+			var json = JSON.new()
+			if json.parse(body.get_string_from_utf8()) == OK:
+				var response_array = json.data as Array
+				for item in response_array:
+					if item is Dictionary and item.has("document"):
+						var doc = item["document"]
+						if doc is Dictionary:
+							var fields = doc.get("fields", {})
+							var id_type = str(fields.get("idPanneType", {}).get("stringValue", ""))
+							if id_type != "":
+								_charger_prix_type(id_type, id_panne, ids_pannes, index)
+								return
+		
+		# Si erreur, passer à la suivante
+		_traiter_pannes_suivantes(ids_pannes, index + 1)
+	)
 	
-	var err = http.request(url_details, headers, HTTPClient.METHOD_POST, json_str_details)
+	var err = http.request(url, headers, HTTPClient.METHOD_POST, json_str)
 	if err != OK:
-		print("Erreur lancement panneDetails pour ", id_panne_actuelle)
 		_traiter_pannes_suivantes(ids_pannes, index + 1)
 
-func _on_details_reponse(_result, code: int, _headers, body: PackedByteArray, id_panne: String, ids_pannes: Array[String], index: int):
-	if get_node_or_null("HTTPRequest"):
-		get_node_or_null("HTTPRequest").queue_free()
+func _charger_prix_type(id_type: String, id_panne: String, ids_pannes: Array[String], index: int):
+	var url = "https://garage-api-2-t50x.onrender.com/panneTypes/" + id_type
+	var headers = PackedStringArray([
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
-	if code != 200:
-		print("HTTP panneDetails ", code, " pour panne ", id_panne)
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_result, code: int, _headers, body: PackedByteArray):
+		http.queue_free()
+		
+		if code == 200:
+			var json = JSON.new()
+			if json.parse(body.get_string_from_utf8()) == OK:
+				var doc_type = json.data
+				if doc_type is Dictionary:
+					var fields = doc_type.get("fields", {})
+					var prix_raw = fields.get("prix", {})
+					var prix = 0
+					
+					if prix_raw.has("doubleValue"):
+						prix = int(prix_raw["doubleValue"])
+					elif prix_raw.has("integerValue"):
+						prix = int(prix_raw["integerValue"])
+					elif prix_raw.has("stringValue"):
+						var p_str = str(prix_raw["stringValue"])
+						if p_str.is_valid_int():
+							prix = int(p_str)
+					
+					total_prix += prix
+					print("Panne payée", id_panne, "→ prix:", prix, " Ar (total:", total_prix, ")")
+		
 		_traiter_pannes_suivantes(ids_pannes, index + 1)
-		return
+	)
 	
-	var json = JSON.new()
-	if json.parse(body.get_string_from_utf8()) != OK:
+	var err = http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
 		_traiter_pannes_suivantes(ids_pannes, index + 1)
-		return
+
+func _charger_details_panne(id_panne: String, ids_pannes: Array[String], index: int):
+	var query_details = {
+		"idPanne": id_panne
+	}
 	
-	var response_array = json.data as Array
-	print("Nombre de panneDetails pour ", id_panne, " : ", response_array.size())
+	var url = "https://garage-api-2-t50x.onrender.com/panneDetails"
+	var json_str = JSON.stringify(query_details)
+	var headers = PackedStringArray([
+		"Content-Type: application/json",
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
-	var local_types: Array[String] = []
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_result, code: int, _headers, body: PackedByteArray):
+		http.queue_free()
+		
+		if code != 200:
+			_traiter_pannes_suivantes(ids_pannes, index + 1)
+			return
+		
+		var json = JSON.new()
+		if json.parse(body.get_string_from_utf8()) != OK:
+			_traiter_pannes_suivantes(ids_pannes, index + 1)
+			return
+		
+		var response_array = json.data as Array
+		var local_types: Array[String] = []
+		
+		for item in response_array:
+			if item is Dictionary and item.has("document"):
+				var doc = item["document"]
+				if doc is Dictionary:
+					var fields = doc.get("fields", {})
+					var id_type = str(fields.get("idPanneType", {}).get("stringValue", ""))
+					if id_type != "":
+						local_types.append(id_type)
+		
+		if local_types.is_empty():
+			_traiter_pannes_suivantes(ids_pannes, index + 1)
+			return
+		
+		var local_completed: int = 0
+		for id_type in local_types:
+			_charger_un_type(id_type, id_panne, func():
+				local_completed += 1
+				if local_completed == local_types.size():
+					_traiter_pannes_suivantes(ids_pannes, index + 1)
+			)
+	)
 	
-	for item in response_array:
-		var doc = item.get("document")
-		if doc is Dictionary:
-			var fields = doc.get("fields", {})
-			var id_type = str(fields.get("idPanneType", {}).get("stringValue", ""))
-			if id_type != "":
-				local_types.append(id_type)
-	
-	if local_types.is_empty():
-		print("Aucun type pour panne ", id_panne)
+	var err = http.request(url, headers, HTTPClient.METHOD_POST, json_str)
+	if err != OK:
 		_traiter_pannes_suivantes(ids_pannes, index + 1)
-		return
-	
-	var local_completed: int = 0
-	for id_type in local_types:
-		_charger_un_type(id_type, id_panne, func():
-			local_completed += 1
-			if local_completed == local_types.size():
-				_traiter_pannes_suivantes(ids_pannes, index + 1)
-		)
 
 func _charger_un_type(id_type: String, id_panne: String, on_complete: Callable):
-	var url_type = "https://firestore.googleapis.com/v1/projects/garrageapp-05/databases/(default)/documents/panneTypes/" + id_type
+	var url = "https://garage-api-2-t50x.onrender.com/panneTypes/" + id_type
+	var headers = PackedStringArray([
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
 	var http_type = HTTPRequest.new()
 	add_child(http_type)
@@ -268,97 +364,118 @@ func _charger_un_type(id_type: String, id_panne: String, on_complete: Callable):
 						if p_str.is_valid_int():
 							prix = int(p_str)
 					
-					verifier_si_panne_a_reparer(id_panne, func(peut_reparer: bool, doc_id_statut: String):
+					verifier_si_panne_a_reparer(id_panne, func(peut_reparer: bool):
 						if peut_reparer:
 							has_reparable_panne = true
 							pending_pannes.append({"id_type": id_type, "duree": duree, "prix": prix, "id_panne": id_panne})
 							total_duree_restante += duree
 							total_prix += prix
 							
-							print("Ajout panne type ", id_type, " → durée: ", duree, "s | prix: ", prix, " Ar")
-							
-							if doc_id_statut != "":
-								panne_statuts_to_update.append(doc_id_statut)
+							print("Panne à réparer", id_panne, "→ durée:", duree, "s | prix:", prix, " Ar")
 						else:
-							print("Panne ", id_panne, " déjà réparée → ignorée")
-							total_prix += prix  # AJOUTÉ: Accumuler le prix même si déjà réparé
+							print("Panne déjà réparée", id_panne, "→ prix:", prix, " Ar (sans durée)")
+							total_prix += prix
 						
-						update_repair_button_visibility()
-						_set_resume("%ds • %d Ar" % [int(total_duree_restante), total_prix])
 						on_complete.call()
 					)
 		else:
 			on_complete.call()
 	)
 	
-	http_type.request(url_type)
-	
+	var err = http_type.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		on_complete.call()
 func verifier_si_panne_a_reparer(id_panne: String, callback: Callable) -> void:
-	var query_statut = {
-		"structuredQuery": {
-			"from": [{"collectionId": "panneStatuts"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "idPanne"},
-					"op": "EQUAL",
-					"value": {"stringValue": id_panne}
-				}
-			},
-			"limit": 1
-		}
-	}
+	# Utiliser votre API Flask au lieu de Firestore directement
+	var url = "https://garage-api-2-t50x.onrender.com/pannes/" + id_panne + "/est-reparee"
+	var headers = PackedStringArray([
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
-	var url = "https://firestore.googleapis.com/v1/projects/garrageapp-05/databases/(default)/documents:runQuery"
-	var json_str = JSON.stringify(query_statut)
-	var headers = PackedStringArray(["Content-Type: application/json"])
+	print("DEBUG: Vérification si panne est déjà réparée via API:", id_panne)
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	
+	# Utiliser une closure qui capture les variables
+	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
+		http.queue_free()
+		
+		var peut_reparer = true  # Par défaut, on peut réparer
+		
+		print("DEBUG: Réponse API est-reparée - Code:", response_code, " pour panne:", id_panne)
+		
+		if response_code == 200:
+			var json = JSON.new()
+			if json.parse(body.get_string_from_utf8()) == OK:
+				var response = json.data
+				print("DEBUG: Réponse complète:", response)
+				
+				if response is Dictionary:
+					var est_reparée = response.get("est_reparée", false)
+					var raison = response.get("raison", "inconnue")
+					
+					if est_reparée:
+						peut_reparer = false
+						print("→ Panne", id_panne, "DÉJÀ", raison.uppercase(), " ! (ne peut pas réparer)")
+					else:
+						print("→ Panne", id_panne, "PAS ENCORE RÉPARÉE (peut réparer)")
+				else:
+					print("ERREUR: Réponse API n'est pas un dictionnaire:", typeof(response))
+					# En cas d'erreur de format, on suppose qu'on peut réparer
+			else:
+				print("ERREUR: Parsing JSON échoué pour panne:", id_panne)
+				var body_str = body.get_string_from_utf8()
+				print("Body reçu:", body_str if body_str.length() < 500 else body_str.substr(0, 500) + "...")
+		else:
+			print("ERREUR: HTTP", response_code, " pour vérification panne:", id_panne)
+			if body.size() > 0:
+				var body_str = body.get_string_from_utf8()
+				print("Message d'erreur:", body_str if body_str.length() < 500 else body_str.substr(0, 500) + "...")
+			# En cas d'erreur HTTP, on suppose qu'on peut réparer pour éviter de bloquer
+		
+		callback.call(peut_reparer)
+	)
+	
+	var err = http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		print("ERREUR: Impossible d'envoyer la requête pour panne:", id_panne)
+		# En cas d'erreur de requête, on suppose qu'on peut réparer
+		callback.call(true)
+func verifier_paiement_panne(id_panne: String, callback: Callable):
+	var url = "https://garage-api-2-t50x.onrender.com/pannes/" + id_panne + "/paiement"
+	var headers = PackedStringArray([
+		"Accept: application/json",
+		"Accept-Encoding: identity"
+	])
 	
 	var http = HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(_result, code: int, _headers, body: PackedByteArray):
 		http.queue_free()
 		
-		var peut_reparer = true
-		var doc_id_statut = ""
+		var est_payee = false
 		
 		if code == 200:
 			var json = JSON.new()
 			if json.parse(body.get_string_from_utf8()) == OK:
-				var response_array = json.data as Array
-				if not response_array.is_empty():
-					var item = response_array[0]
-					var doc = item.get("document")
-					if doc is Dictionary:
-						doc_id_statut = str(doc.get("name", "")).split("/")[-1]
-						var fields = doc.get("fields", {})
-						var statut = str(fields.get("idStatutForPanne", {}).get("stringValue", "1"))
-						
-						if statut == "2":
-							peut_reparer = false
+				var response = json.data
+				if response is Dictionary and response.get("paid", false):
+					est_payee = true
 		
-		callback.call(peut_reparer, doc_id_statut)
+		callback.call(est_payee)
 	)
 	
-	http.request(url, headers, HTTPClient.METHOD_POST, json_str)
+	var err = http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		callback.call(false)
 
 # ===============================
-# Gestion boutons et réparation
+# Reste du code (inchangé)
 # ===============================
-func update_repair_button_visibility() -> void:
-	if repair_button:
-		if pending_pannes.is_empty() or is_repairing:
-			repair_button.visible = false
-		else:
-			repair_button.visible = true
-
-func update_finish_button_visibility() -> void:
-	if finish_button:
-		if pending_pannes.is_empty() and total_duree_restante <= 0 and has_reparable_panne:
-			finish_button.visible = true
-		else:
-			finish_button.visible = false
-
 func _on_repair_button_pressed() -> void:
-	if pending_pannes.is_empty() or is_repairing:
+	if pending_pannes.is_empty() or is_repairing or panne_deja_payee:
 		return
 	
 	repair_button.visible = false
@@ -378,13 +495,10 @@ func _start_next_repair() -> void:
 		return
 	
 	var panne = pending_pannes[current_repair_index]
-	
 	repair_duration = panne["duree"]
 	current_repair_time = 0.0
 	is_repairing = true
-	
-	print("Réparation démarrée : ", panne["id_type"], " - ", repair_duration, " secondes")
-
+	print("Réparation démarrée : ", repair_duration, " secondes")
 func _process(delta: float) -> void:
 	if not is_repairing:
 		return
@@ -398,18 +512,31 @@ func _process(delta: float) -> void:
 		
 		total_duree_restante -= repair_duration
 		var panne_reparée = pending_pannes[current_repair_index]
-		
-		# Sauvegarder la panne réparée avant de la supprimer
 		pannes_reparées.append(panne_reparée.duplicate())
 		pending_pannes.remove_at(current_repair_index)
 		
 		update_repair_button_visibility()
 		_set_resume("%ds • %d Ar" % [int(total_duree_restante), total_prix])
 		
+		# CORRECTION : Vérifier si TOUTES les réparations sont terminées
 		if pending_pannes.is_empty():
-			update_finish_button_visibility()
 			_set_statut("Réparations terminées", Color.GREEN)
-
+			print("=== TOUTES LES RÉPARATIONS TERMINÉES ===")
+			print("pannes_reparées:", pannes_reparées.size())
+			print("is_in_finish_zone:", is_in_finish_zone)
+			
+			# Toujours mettre à jour la visibilité du bouton
+			update_finish_button_visibility()
+		else:
+			# Il reste encore des réparations
+			print("=== RÉPARATION PARTIELLE TERMINÉE ===")
+			print("Reste", pending_pannes.size(), "pannes à réparer")
+			print("Temps restant:", total_duree_restante, "s")
+			
+			# Passer à la panne suivante
+			current_repair_index += 1
+			if current_repair_index < pending_pannes.size():
+				_start_next_repair()			
 func _on_finish_button_pressed() -> void:
 	if pannes_reparées.is_empty() or validation_en_cours:
 		print("Aucune panne réparée à valider ou validation déjà en cours")
@@ -449,6 +576,7 @@ func _on_finish_button_pressed() -> void:
 			now.hour, now.minute, now.second
 		]
 		
+		# MODIFICATION : Préparer le document au format que votre API attend
 		var new_doc = {
 			"fields": {
 				"dateHeure": {"timestampValue": timestamp_str},
@@ -458,7 +586,9 @@ func _on_finish_button_pressed() -> void:
 		}
 		
 		var json_str = JSON.stringify(new_doc)
-		var url = "https://firestore.googleapis.com/v1/projects/garrageapp-05/databases/(default)/documents/panneStatuts"
+		
+		# MODIFICATION : Utiliser votre API Flask au lieu de Firestore direct
+		var url = "https://garage-api-2-t50x.onrender.com/panneStatuts"
 		var headers = PackedStringArray(["Content-Type: application/json"])
 		
 		var http = HTTPRequest.new()
@@ -466,13 +596,15 @@ func _on_finish_button_pressed() -> void:
 		requetes_validation_en_cours.append(http)
 		
 		# Utiliser une closure qui capture les variables correctement
-		http.request_completed.connect(func(_result, code, _headers, _body, http_node = http, panne_id = id_panne):
+		http.request_completed.connect(func(_result, code, _headers, body, http_node = http, panne_id = id_panne):
 			print("Réponse HTTP pour ", panne_id, " code = ", code)
 			
 			if code >= 200 and code < 300:
 				print("→ SUCCÈS pour ", panne_id)
 			else:
 				print("→ ÉCHEC pour ", panne_id, " → code ", code)
+				if body.size() > 0:
+					print("Message d'erreur:", body.get_string_from_utf8())
 			
 			# Retirer la requête de la liste
 			if http_node in requetes_validation_en_cours:
@@ -514,23 +646,106 @@ func _finaliser_validation():
 	requetes_validation_en_cours.clear()
 	update_repair_button_visibility()
 	update_finish_button_visibility()
+
+func update_repair_button_visibility() -> void:
+	if repair_button:
+		repair_button.visible = (not pending_pannes.is_empty() and not panne_deja_payee and has_reparable_panne)
+
+func update_finish_button_visibility() -> void:
+	if not is_instance_valid(finish_button):
+		print("❌ finish_button n'est pas valide!")
+		return
 	
-# ===============================
-# UI helpers
-# ===============================
+	print("=== update_finish_button_visibility() ===")
+	print("is_in_finish_zone =", is_in_finish_zone)
+	print("pending_pannes.size() =", pending_pannes.size())
+	print("total_duree_restante =", total_duree_restante)
+	print("pannes_reparées.size() =", pannes_reparées.size())
+	print("panne_deja_payee =", panne_deja_payee)
+	
+	# LOGIQUE CORRIGÉE :
+	# Le bouton Finir apparaît quand :
+	# 1. La voiture est dans la zone de finition
+	# 2. Toutes les réparations sont terminées (plus de pannes en attente)
+	# 3. Plus de temps de réparation restant
+	# 4. Il y a des pannes réparées à valider
+	# 5. La voiture n'est pas déjà payée
+	
+	var should_show = false
+	
+	if is_in_finish_zone:
+		print("✓ Dans la zone de finition")
+		
+		if pending_pannes.is_empty():
+			print("✓ Aucune panne en attente")
+			
+			if total_duree_restante <= 0:
+				print("✓ Pas de temps de réparation restant")
+				
+				if pannes_reparées.size() > 0:
+					print("✓ Il y a", pannes_reparées.size(), "pannes réparées à valider")
+					
+					if not panne_deja_payee:
+						print("✓ Pas déjà payé")
+						should_show = true
+						print("→ TOUTES LES CONDITIONS SONT REMPLIES !")
+					else:
+						print("✗ Déjà payé, pas besoin de bouton")
+				else:
+					print("✗ Aucune panne réparée à valider")
+			else:
+				print("✗ Temps de réparation restant:", total_duree_restante)
+		else:
+			print("✗ Pannes en attente:", pending_pannes.size())
+	else:
+		print("✗ Pas dans la zone de finition")
+	
+	print("  should_show =", should_show)
+	print("================================")
+	
+	finish_button.visible = should_show
+	finish_button.disabled = !should_show
+	
+	# Debug supplémentaire
+	if should_show:
+		print("🎯 BOUTON FINIR DOIT ÊTRE VISIBLE !")
+		print("Position du bouton:", finish_button.global_position)
+		print("Taille du bouton:", finish_button.size)
+
 func _set_statut(text: String, col: Color):
 	if label_statut:
 		label_statut.text = text
 		label_statut.modulate = col
 		print("STATUT MIS À JOUR : ", text)
+	
+	if sprite:
+		sprite.modulate = Color.WHITE
 
 func _set_resume(text: String):
 	if label_resume:
 		label_resume.text = text
 		print("RÉSUMÉ MIS À JOUR : ", text)
-	else:
-		print("Résumé : ", text)
 
 func afficher_erreur(msg: String):
 	_set_statut("⚠️ " + msg, Color.ORANGE)
 	print("ERREUR : ", msg)
+
+func montrer_bouton_finir():
+	print("🎯 MONTRE BOUTON FINIR APPELÉ !")
+	print("  Nom de cette voiture:", name)
+	print("  Chemin:", get_path())
+	
+	is_in_finish_zone = true
+	print("  is_in_finish_zone =", is_in_finish_zone)
+	
+	# Forcer l'update IMMÉDIATEMENT
+	update_finish_button_visibility()
+
+func cacher_bouton_finir():
+	print("🎯 CACHE BOUTON FINIR APPELÉ !")
+	
+	is_in_finish_zone = false
+	print("  is_in_finish_zone =", is_in_finish_zone)
+	
+	# Forcer l'update IMMÉDIATEMENT
+	update_finish_button_visibility()

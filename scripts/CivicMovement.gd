@@ -50,3 +50,6 @@ func update_sprite_direction(dir: Vector2):
 	
 	sprite.animation = anim_name
 	sprite.frame = frame_index
+func set_controlled(value: bool):
+	is_controlled = value
+	print("🚗 Voiture controlée: ", value)
